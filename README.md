@@ -4,6 +4,16 @@ Flyingbee PDF Converter for Linux is a high-performance, headless PDF converter 
 
 ![FPPDFConverter Console Preview](https://www.flyingbee.com/pdf-converter/images/FPPDFConverter-Console.jpg)
 
+---
+
+## 🕹️Try It Online
+
+Want to try before deploying? Use the **Flyingbee PDF Converter Online** to convert PDFs to MS Office formats directly in your browser — no installation required.
+
+[🚀 Launch Web Demo](https://www.flyingbee.com/pdf-converter/?utm_source=github_readme_conversion_sdk_linux_cli&utm_medium=referral&utm_campaign=github_readme_conversion_sdk_linux_cli)
+
+---
+
 ## Features
 
 *   **High-Fidelity PDF2Files Linux Conversion:** Accurately converts PDFs to Word (.docx), Excel (.xlsx), and PowerPoint (.pptx) while maintaining the original document structure.
@@ -126,4 +136,4 @@ Yes, the PDF conversion library Linux engine is designed to retain original text
 For technical assistance, licensing inquiries, or bug reports, please reach out to the Flyingbee team:
 
 *   **Email:** [support@flyingbee.com](mailto:support@flyingbee.com)
-*   **Contact Page:** [https://www.flyingbee.com/contact-us/](https://www.flyingbee.com/contact-us/)
+*   **Contact Page:** [https://www.flyingbee.com/contact-us/](https://www.flyingbee.com/contact-us/?utm_source=github_readme_conversion_sdk_linux_cli&utm_medium=referral&utm_campaign=github_readme_conversion_sdk_linux_cli)
