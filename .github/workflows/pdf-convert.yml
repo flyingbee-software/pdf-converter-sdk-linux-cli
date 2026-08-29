@@ -1,0 +1,98 @@
+# PDF conversion via Flyingbee PDF Converter SDK (Linux CLI)
+#
+# NOTE for production use:
+#   1. This package uses an EXPIRED trial license (max 10 pages). Buy a valid
+#      license from Flyingbee and inject the license file via secrets before CI use.
+#   2. The SDK binaries (FPPDFConverter-x64.out, FPPDFConverter-arm64.out,
+#      FPPDFConverter-x86.out, Resources.bundle/) are large. Do NOT commit them
+#      to git. Instead download them from a private GitHub Release (or use
+#      actions/cache). The steps below assume the SDK already exists at
+#      ./FPPDFFramework_CLI in the repo for demo purposes.
+#   3. Runs on ubuntu-latest because FPPDFConverter-x64.out is a Linux x64 binary.
+
+name: PDF Convert (Flyingbee SDK)
+
+on:
+  workflow_dispatch:
+    inputs:
+      input_pdf:
+        description: "Path to the PDF to convert (relative to repo root)"
+        required: true
+        default: "FPPDFFramework_CLI/Test.pdf"
+      format:
+        description: "Output format"
+        required: true
+        default: "docx"
+        type: choice
+        options: [docx, xlsx, pptx, txt]
+      pages:
+        description: "Page range, e.g. 'all' or '1-3'"
+        required: false
+        default: "all"
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # (Optional) If SDK is distributed as a Release asset instead of committed:
+      # - name: Download SDK
+      #   run: |
+      #     curl -fL -o sdk.zip "${{ secrets.SDK_RELEASE_URL }}"
+      #     unzip -q sdk.zip
+
+      - name: Inspect SDK
+        shell: bash
+        run: ls -la FPPDFFramework_CLI
+
+      - name: Install recommended fonts (best effort)
+        shell: bash
+        run: |
+          # README recommends Arial / Consolas / Courier / Times New Roman for
+          # best conversion fidelity. Install Microsoft core fonts; failures here
+          # must not block the conversion step.
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get update -qq || true
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ttf-mscorefonts-installer || true
+          fc-cache -f >/dev/null 2>&1 || true
+
+      - name: Convert PDF
+        shell: bash
+        run: |
+          set -e
+          repo="$PWD"
+          cd FPPDFFramework_CLI
+          # Pick the executable matching the runner architecture (x64).
+          if [ -f FPPDFConverter-x64.out ]; then
+            mv -f FPPDFConverter-x64.out FPPDFConverter.out
+          fi
+          chmod +x FPPDFConverter.out
+
+          in="${{ github.event.inputs.input_pdf }}"
+          fmt="${{ github.event.inputs.format }}"
+          pages="${{ github.event.inputs.pages }}"
+          if [[ "$in" != /* ]]; then
+            in="$repo/$in"
+          fi
+          base=$(basename "$in")
+          out="$repo/output/${base%.*}.${fmt}"
+          mkdir -p "$repo/output"
+
+          ./FPPDFConverter.out -a PDF2Files -i "$in" -o "$out" -f "$fmt" -p "$pages" || true
+          # The converter returns a non-zero exit code when the license is
+          # expired/trial, even if it actually produced the file. Decide success
+          # by the output file instead.
+          if [ ! -f "$out" ]; then
+            echo "::error::Conversion failed: expected output '$out' was not created."
+            exit 1
+          fi
+          echo "Output produced: $out"
+          exit 0
+
+      - name: Upload result
+        uses: actions/upload-artifact@v6
+        with:
+          name: converted-${{ github.event.inputs.format }}
+          path: output/
