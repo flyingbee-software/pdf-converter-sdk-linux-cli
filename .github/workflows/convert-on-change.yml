@@ -1,0 +1,66 @@
+# Run converter.sh automatically when source/executable/library files change.
+#
+# Triggers on `push` whenever a matched path (Linux binary, source files,
+# converter resources, or the converter script itself) is modified, then runs
+# the bundled converter.sh as a smoke test and uploads the produced .docx files
+# as artifacts.
+#
+# NOTE: the bundled SDK is an EXPIRED trial (max 10 pages). The converter returns
+# a non-zero exit code even on success, so the job judges pass/fail by the output
+# files.
+
+name: Convert on change
+
+on:
+  push:
+    paths:
+      - '**/*.out'
+      - '**/*.so'
+      - '**/*.sh'
+      - '**/*.c'
+      - '**/*.cpp'
+      - '**/*.h'
+      - '**/*.hpp'
+      - 'FPPDFFramework_CLI/Resources.bundle/**'
+  workflow_dispatch:
+
+jobs:
+  convert-on-change:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Prepare SDK binary
+        shell: bash
+        run: |
+          cd FPPDFFramework_CLI
+          # Pick the executable matching the runner architecture (x64).
+          if [ -f FPPDFConverter-x64.out ]; then
+            mv -f FPPDFConverter-x64.out FPPDFConverter.out
+          fi
+          chmod +x FPPDFConverter.out
+
+      - name: Run converter.sh
+        shell: bash
+        run: |
+          cd FPPDFFramework_CLI
+          ./converter.sh || true
+          # The converter returns a non-zero exit code under an expired/trial
+          # license even when it succeeds, so decide by the produced output
+          # instead. converter.sh writes the .docx files next to the PDFs.
+          docs=$(find . -maxdepth 1 -name "*.docx" | wc -l)
+          if [ "$docs" -eq 0 ]; then
+            echo "::error::converter.sh produced no .docx output (conversion may have failed)."
+            exit 1
+          fi
+          echo "Produced $docs docx file(s):"
+          find . -maxdepth 1 -name "*.docx" -printf "  - %f\n"
+          exit 0
+
+      - name: Upload converted files
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: converted-docx
+          path: FPPDFFramework_CLI/*.docx
