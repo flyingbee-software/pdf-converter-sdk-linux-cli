@@ -45,6 +45,8 @@ jobs:
         shell: bash
         run: |
           cd FPPDFFramework_CLI
+          # Files committed on Windows don't keep the executable bit, so grant it.
+          chmod +x converter.sh
           ./converter.sh || true
           # The converter returns a non-zero exit code under an expired/trial
           # license even when it succeeds, so decide by the produced output
