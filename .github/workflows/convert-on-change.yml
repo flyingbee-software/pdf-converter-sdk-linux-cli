@@ -60,9 +60,12 @@ jobs:
           find converted -maxdepth 1 -name "*.docx" -printf "  - %f\n"
           exit 0
 
-      - name: Upload converted files
+      - name: Upload converted files and conversion log
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: converted-docx
-          path: FPPDFFramework_CLI/converted/
+          name: convert-output
+          path: |
+            FPPDFFramework_CLI/converted/
+            FPPDFFramework_CLI/conversion.log
+
