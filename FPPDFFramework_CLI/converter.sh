@@ -3,6 +3,7 @@
 
 # ============ Configuration Section (Please modify according to your setup) ============
 PDF_DIR="./"                                   # Directory containing PDF files, "./" means current directory
+OUTPUT_DIR="converted"                         # Directory for converted files
 TOOL_PATH="./FPPDFConverter.out"
 NUM_THREADS="4"                           # Number of threads (1 - 12)
 OUTPUT_FORMAT="docx"                           # Output format (can be changed to pptx, xlsx, html, csv, txt, etc.)
@@ -18,8 +19,9 @@ echo "📅 Started at: $(date)" >> "$LOG_FILE"
 echo "========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
-# Clean old files
-rm -f *."$OUTPUT_FORMAT"
+# Create output directory and clean old files
+mkdir -p "$OUTPUT_DIR"
+rm -f "$OUTPUT_DIR"/*."$OUTPUT_FORMAT"
 echo "✅ Cleaned up existing .$OUTPUT_FORMAT files."
 
 # Gather PDFs
@@ -62,7 +64,7 @@ for i in "${!pdf_files[@]}"; do
     echo "$separator" >> "$LOG_FILE"
 
     # Run command and capture output
-    output=$( "$TOOL_PATH" -a PDF2Files -i "$pdf_file" -f "$OUTPUT_FORMAT" -t "$NUM_THREADS" -p all 2>&1 )
+    output=$( "$TOOL_PATH" -a PDF2Files -i "$pdf_file" -f "$OUTPUT_FORMAT" -o "$OUTPUT_DIR" -t "$NUM_THREADS" -p all 2>&1 )
     echo "$output" >> "$LOG_FILE"
 
     # Check for success message
