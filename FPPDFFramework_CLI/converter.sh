@@ -32,9 +32,33 @@ if [[ ! -f "${pdf_files[0]}" ]]; then
     exit 0
 fi
 
-total=${#pdf_files[@]}
-echo "📦 Found $total PDF file(s). Starting conversion..."
-echo "📦 Found $total PDF file(s)." >> "$LOG_FILE"
+# Keep only valid PDFs: verify the "%PDF" magic header so files that merely
+# carry a .pdf name (empty files, Git LFS pointers, etc.) are skipped.
+valid_pdfs=()
+skipped_count=0
+for f in "${pdf_files[@]}"; do
+    if [[ -f "$f" && "$(head -c 4 "$f" 2>/dev/null)" == "%PDF" ]]; then
+        valid_pdfs+=("$f")
+    else
+        echo "⚠️ Skipping invalid PDF file: $f"
+        echo "⚠️ Skipping invalid PDF file: $f" >> "$LOG_FILE"
+        ((skipped_count++))
+    fi
+done
+
+if (( ${#valid_pdfs[@]} == 0 )); then
+    echo "⚠️ No valid PDF files found (all *.pdf files failed the %PDF check)."
+    echo "⚠️ No valid PDF files found (all *.pdf files failed the %PDF check)." >> "$LOG_FILE"
+    exit 0
+fi
+
+total=${#valid_pdfs[@]}
+echo "📦 Found $total valid PDF file(s). Starting conversion..."
+echo "📦 Found $total valid PDF file(s)." >> "$LOG_FILE"
+if (( skipped_count > 0 )); then
+    echo "⚠️ Skipped $skipped_count invalid file(s)."
+    echo "⚠️ Skipped $skipped_count invalid file(s)." >> "$LOG_FILE"
+fi
 
 # --- Time ---
 success_count=0
@@ -44,8 +68,8 @@ fail_count=0
 start_total=$(date +%s)
 
 # --- Conversion Loop ---
-for i in "${!pdf_files[@]}"; do
-    pdf_file="${pdf_files[$i]}"
+for i in "${!valid_pdfs[@]}"; do
+    pdf_file="${valid_pdfs[$i]}"
     index=$((i + 1))
 	message="------------------"
     echo "$message"
