@@ -88,7 +88,10 @@ for i in "${!valid_pdfs[@]}"; do
     echo "$separator" >> "$LOG_FILE"
 
     # Run command and capture output
-    output=$( "$TOOL_PATH" -a PDF2Files -i "$pdf_file" -f "$OUTPUT_FORMAT" -o "$OUTPUT_DIR" -t "$NUM_THREADS" -p all 2>&1 )
+    # NOTE: -o expects a full output file path (the SDK treats it as a file name),
+    # so pass "converted/<name>.<format>" rather than just the directory.
+    out_path="$OUTPUT_DIR/${pdf_file%.*}.${OUTPUT_FORMAT}"
+    output=$( "$TOOL_PATH" -a PDF2Files -i "$pdf_file" -f "$OUTPUT_FORMAT" -o "$out_path" -t "$NUM_THREADS" -p all 2>&1 )
     echo "$output" >> "$LOG_FILE"
 
     # Check for success message
