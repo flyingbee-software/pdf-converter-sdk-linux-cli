@@ -48,6 +48,16 @@ jobs:
           ./converter.sh || true
           # The converter returns a non-zero exit code under an expired/trial
           # license even when it succeeds, so decide by the produced output
+<<<<<<< HEAD
+          # instead. converter.sh writes the .docx files into converted/.
+          docs=$(find converted -maxdepth 1 -name "*.docx" | wc -l)
+          if [ "$docs" -eq 0 ]; then
+            echo "::error::converter.sh produced no .docx output in converted/ (conversion may have failed)."
+            exit 1
+          fi
+          echo "Produced $docs docx file(s) in converted/:"
+          find converted -maxdepth 1 -name "*.docx" -printf "  - %f\n"
+=======
           # instead. converter.sh writes the .docx files next to the PDFs.
           docs=$(find . -maxdepth 1 -name "*.docx" | wc -l)
           if [ "$docs" -eq 0 ]; then
@@ -56,6 +66,7 @@ jobs:
           fi
           echo "Produced $docs docx file(s):"
           find . -maxdepth 1 -name "*.docx" -printf "  - %f\n"
+>>>>>>> origin/main
           exit 0
 
       - name: Upload converted files
@@ -63,4 +74,8 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: converted-docx
+<<<<<<< HEAD
+          path: FPPDFFramework_CLI/converted/
+=======
           path: FPPDFFramework_CLI/*.docx
+>>>>>>> origin/main
