@@ -1,0 +1,2 @@
+# Normalize line endings so shell scripts stay LF in the repo and work on Linux runners.
+*.sh text eol=lf

@@ -6,15 +6,16 @@ PDF_DIR="./"                                   # Directory containing PDF files,
 OUTPUT_DIR="converted"                         # Directory for converted files
 TOOL_PATH="./FPPDFConverter.out"
 NUM_THREADS="4"                           # Number of threads (1 - 12)
-OUTPUT_FORMAT="docx"                           # Output format (can be changed to pptx, xlsx, html, csv, txt, etc.)
-LOG_FILE="conversion.log"
+OUTPUT_FORMAT="docx"                      # Output format (can be changed to pptx, xlsx, html, csv, txt, etc.)
+OCR_LANG="eng"                            # OCR language (can be changed to zh-Hans, zh-Hant, etc.)
+LOG_FILE="conversion-ocr.log"
 SUCCESS_MARKER="Successfully converted!"
 # ==============================================
 echo "========================================"
 cd "$PDF_DIR" || { echo "❌ Failed to enter directory: $PDF_DIR"; exit 1; }
 
 # Initialize log
-echo "📄 PDF to $OUTPUT_FORMAT Conversion Log" > "$LOG_FILE"
+echo "📄 PDF to $OUTPUT_FORMAT with OCR($OCR_LANG) Conversion Log" > "$LOG_FILE"
 echo "📅 Started at: $(date)" >> "$LOG_FILE"
 echo "========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
@@ -53,7 +54,7 @@ if (( ${#valid_pdfs[@]} == 0 )); then
 fi
 
 total=${#valid_pdfs[@]}
-echo "📦 Found $total valid PDF file(s). Starting conversion..."
+echo "📦 Found $total valid PDF file(s). Starting conversion with OCR($OCR_LANG)..."
 echo "📦 Found $total valid PDF file(s)." >> "$LOG_FILE"
 if (( skipped_count > 0 )); then
     echo "⚠️ Skipped $skipped_count invalid file(s)."
@@ -91,12 +92,12 @@ for i in "${!valid_pdfs[@]}"; do
     # NOTE: -o expects a full output file path (the SDK treats it as a file name),
     # so pass "converted/<name>.<format>" rather than just the directory.
     out_path="$OUTPUT_DIR/${pdf_file%.*}.${OUTPUT_FORMAT}"
-    cmd=( "$TOOL_PATH" -a PDF2Files -i "$pdf_file" -f "$OUTPUT_FORMAT" -o "$out_path" -t "$NUM_THREADS" -p all )
+    cmd=( "$TOOL_PATH" -a PDF2Files -i "$pdf_file" -r 1 -g "$OCR_LANG" -f "$OUTPUT_FORMAT" -o "$out_path" -t "$NUM_THREADS" -p all )
     # Echo the exact command line to the console and the log before running it.
     { printf '▶️ Running:'; printf ' %q' "${cmd[@]}"; printf '\n'; } | tee -a "$LOG_FILE"
     output=$( "${cmd[@]}" 2>&1 )
     echo "$output" >> "$LOG_FILE"
-
+    
     # Check for success message
     if echo "$output" | grep -q "$SUCCESS_MARKER"; then
         end_file=$(date +%s)
