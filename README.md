@@ -18,7 +18,7 @@ Want to try before deploying? Use the **Flyingbee PDF Converter Online** to conv
 
 *   **High-Fidelity PDF2Files Linux Conversion:** Accurately converts PDFs to Word (.docx), Excel (.xlsx), and PowerPoint (.pptx) while maintaining the original document structure.
 *   **Versatile Conversion Modes:** Supports multiple workflows including `PDF2Files`, `Images2PDF` command line processing, and `Text2Word` Linux operations.
-*   **Multi-Threaded Batch PDF Conversion Linux:** Accelerate processing on your Linux server PDF converter by utilizing up to 12 concurrent threads.
+*   **Multi-Threaded Batch PDF Conversion Linux:** Accelerate processing on your Linux server PDF converter by utilizing up to 10 concurrent threads (`-t 1-10`).
 *   **Comprehensive Format Support:** Export to `docx`, `pptx`, `xlsx`, `csv`, `txt`, `jpeg`, `jpg`, `png`, `bmp`, `tif`, `tiff`, and `gif`.
 *   **Advanced PDF Handling:** Includes options for password-protected files, custom page ranges, adjustable image DPI (72-600), and merged Excel sheets.
 *   **Headless PDF Converter Architecture:** Designed specifically for automated, server-side workflows without requiring a graphical user interface.
@@ -51,52 +51,168 @@ Follow these steps to deploy and execute the PDF conversion library Linux CLI on
     ```bash
     chmod +x FPPDFConverter.out
     ```
-5.  Execute a basic conversion command:
+5.  Execute a basic conversion command (convert a PDF to Word):
     ```bash
-    ./FPPDFConverter.out -a PDF2Files -i "Test.pdf" -f docx -p all
+    ./FPPDFConverter.out -a PDF2Files -i "Test.pdf" -f docx -p all -o "Test.docx"
     ```
 
 ## Command Line Reference
 
-| Flag | Parameter | Description |
-| :--- | :--- | :--- |
-| `-a` | App Name | Specifies the application mode: `PDF2Files`, `Images2PDF`, or `Text2Word` |
-| `-i` | Input Path | Path to the input file or directory |
-| `-o` | Output Path | Destination path for the converted files |
-| `-f` | Format | Target format: `docx`, `pptx`, `xlsx`, `csv`, `txt`, `jpeg`, `jpg`, `png`, `bmp`, `tif`, `tiff`, `gif` |
-| `-p` | Page Range | Pages to convert (e.g., `all`, `1-5`, `1,3,5`) |
-| `-t` | Threads | Number of concurrent threads (0-12). Default is 1. |
-| `-d` | DPI | Image resolution for exports, ranging from 72 to 600 |
-| `-w` | Password | Password for opening encrypted PDF files |
-| `-x` | Merge Sheets | Merges multiple PDF pages into a single Excel sheet (for xlsx) |
-| `-c` | Open File | Automatically opens the converted file upon completion |
-| `-h` | Help | Displays the help menu and available commands |
+Every invocation starts with an application command:
+
+```bash
+./FPPDFConverter.out -a <command> [options]
+```
+
+Run `./FPPDFConverter.out -h` for app-level help, or `./FPPDFConverter.out -a <command> -h` for options specific to a command. Available commands:
+
+| Command | Description |
+| :--- | :--- |
+| `PDF2Files` | Convert PDF documents to Word, Excel, PPT, HTML, images, etc. |
+| `Images2PDF` | Merge multiple images into a single PDF document. |
+| `Text2Word` | Convert plain text files to formatted Word documents. |
+
+> **Note:** Short flags are reused across commands with **different meanings** (e.g. `-z` means "package HTML to ZIP" under `PDF2Files`, but "scale mode" under `Images2PDF`). Always refer to the section for the command you are using.
+
+### Global Options (All Commands)
+
+| Option | Description |
+| :--- | :--- |
+| `-h` | Show this help message and exit. |
+| `-c` | Open the converted file automatically upon completion. |
+
+### PDF2Files — PDF to Word / Excel / PPT / HTML / Images
+
+```bash
+./FPPDFConverter.out -a PDF2Files -i <input.pdf> -o <output> [options]
+```
+
+| Option | Description |
+| :--- | :--- |
+| `-i <path>` | Input PDF file path (required). |
+| `-o <path>` | Output file or directory path (required). |
+| `-f <format>` | Target format: `docx` (default), `pptx`, `xlsx`, `html`, `csv`, `txt`, `jpeg`, `jpg`, `png`, `bmp`, `tif`, `tiff`, `gif`. |
+| `-p <ranges>` | Page ranges to convert, e.g. `1-3,5,8-10`. |
+| `-t <threads>` | Number of processing threads (1-10, default: 1). |
+| `-x` | (XLSX only) Merge multiple sheets into a single sheet. |
+| `-w <password>` | Password for opening encrypted PDF files. |
+
+**HTML output options:**
+
+| Option | Description |
+| :--- | :--- |
+| `-l <mode>` | Layout mode: `0` = exact page layout (default), `1` = text flow. |
+| `-e <mode>` | Paragraph style: `0` = line break (default), `1` = indent. |
+| `-b <mode>` | Navigation bar: `0` = disabled, `1` = enabled (default). |
+| `-m <level>` | Resource merge: `0` = none (default), `1` = CSS/JS, `2` = CSS/JS/small images, `3` = CSS/JS/all images. |
+| `-z` | Package the HTML output and its resources as a ZIP file. |
+
+**Image output options (`jpeg`, `jpg`, `png`, `bmp`, `tif`, `tiff`, `gif`):**
+
+| Option | Description |
+| :--- | :--- |
+| `-d <dpi>` | Image resolution (72-600, default: 144). |
+| `-n <mode>` | Anti-aliasing: `0` = none, `1` = font smoothing (default). |
+
+**OCR options:**
+
+| Option | Description |
+| :--- | :--- |
+| `-r` | Enable OCR (Optical Character Recognition). |
+| `-g <lang>` | OCR language for Tesseract, e.g. `eng`, `chi_sim`, `jpn`. |
+
+### Images2PDF — Merge Images to PDF
+
+```bash
+./FPPDFConverter.out -a Images2PDF -i <folder> -o <output.pdf> [options]
+```
+
+| Option | Description |
+| :--- | :--- |
+| `-i <folder>` | Source folder containing images (required). |
+| `-o <path>` | Output PDF file path (required). |
+| `-s <size>` | Paper size: `A0`-`A10`, `Letter`, `Legal`, `Tabloid`, `4x6`, `5x7`, or `auto` (default: none). |
+| `-n <orient>` | Orientation: `portrait`, `landscape`, `auto` (default: auto). |
+| `-w <inches>` | Custom paper width in inches (used with a custom size). |
+| `-l <inches>` | Custom paper height in inches (used with a custom size). |
+| `-m <margin>` | Page margins in inches; append `mm` for millimeters. |
+| `-z <scale>` | Scale mode: `fit` (default), `fw`, `fh`, `reduce`, `rw`, `rh`, `none`. |
+| `-r <crop>` | Crop/expand: `none` (default), `height`, `width`, `both`. |
+
+**Metadata options:**
+
+| Option | Description |
+| :--- | :--- |
+| `-t <title>` | Document title. |
+| `-A <author>` | Document author. |
+| `-k <keywords>` | Document keywords. |
+| `-S <subject>` | Document subject. |
+| `-C <creator>` | Document creator. |
+
+### Text2Word — Plain Text to Word
+
+```bash
+./FPPDFConverter.out -a Text2Word -i <input.txt> -o <output.docx> [options]
+```
+
+| Option | Description |
+| :--- | :--- |
+| `-i <path>` | Input plain text file path (required). |
+| `-o <path>` | Output Word document path (required). |
+| `-s <size>` | Paper size: `A0`-`A10`, `Letter`, `Legal`, `Tabloid`, `4x6`, `5x7`, or `auto` (default: none). |
+| `-n <orient>` | Orientation: `portrait`, `landscape`, `auto` (default: auto). |
+| `-w <inches>` | Custom paper width in inches (used with a custom size). |
+| `-l <inches>` | Custom paper height in inches (used with a custom size). |
+| `-m <margin>` | Page margins in inches; append `mm` for millimeters. |
+| `-e <columns>` | Number of columns (1-10, default: 1). |
+| `-b <font>` | Font name: `Arial` (default), `Calibri`, `Courier`, `Times New Roman`, `Helvetica`, `Verdana`, `Consolas`, `SimSun`, `SimHei`, `FangSong`, `KaiTi`, `Microsoft YaHei`. |
+| `-d <size>` | Font size in points (8-72, default: 12). |
 
 ## Usage Examples
 
+**Convert a PDF to Word (default format, all pages):**
+```bash
+./FPPDFConverter.out -a PDF2Files -i "/documents/report.pdf" -o "/output/report.docx"
+```
+
 **Convert a PDF to Word with specific pages:**
 ```bash
-./FPPDFConverter.out -a PDF2Files -i "/documents/report.pdf" -f docx -p "1-10" -o "/output/"
+./FPPDFConverter.out -a PDF2Files -i "/documents/report.pdf" -f docx -p "1-3,5,8-10" -o "/output/report.docx"
 ```
 
 **Convert a PDF to Excel with merged sheets using 4 threads:**
 ```bash
-./FPPDFConverter.out -a PDF2Files -i "/data/invoice.pdf" -f xlsx -x -t 4 -o "/exports/"
+./FPPDFConverter.out -a PDF2Files -i "/data/invoice.pdf" -f xlsx -x -t 4 -o "/exports/invoice.xlsx"
 ```
 
-**Convert a password-protected PDF to PowerPoint at 300 DPI:**
+**Convert a password-protected PDF to PowerPoint:**
 ```bash
-./FPPDFConverter.out -a PDF2Files -i "/secure/presentation.pdf" -f pptx -w "MySecretPass" -d 300 -o "/slides/"
+./FPPDFConverter.out -a PDF2Files -i "/secure/presentation.pdf" -f pptx -w "MySecretPass" -o "/slides/presentation.pptx"
 ```
 
-**Convert a directory of images to a single PDF:**
+**Convert selected pages of a PDF to 300 DPI PNG images:**
 ```bash
-./FPPDFConverter.out -a Images2PDF -i "/images/folder/" -f pdf -o "/archives/combined.pdf"
+./FPPDFConverter.out -a PDF2Files -i "/scans/book.pdf" -f png -d 300 -p "1-10" -o "/images/book_"
 ```
 
-**Convert plain text to a Word document:**
+**Convert a PDF to a single HTML page and package it as a ZIP:**
 ```bash
-./FPPDFConverter.out -a Text2Word -i "/notes/readme.txt" -f docx -o "/docs/"
+./FPPDFConverter.out -a PDF2Files -i "/manuals/guide.pdf" -f html -l 0 -z -o "/web/guide.zip"
+```
+
+**Convert a scanned PDF to a searchable DOCX using OCR (Simplified Chinese):**
+```bash
+./FPPDFConverter.out -a PDF2Files -i "/scans/contract.pdf" -f docx -r -g chi_sim -o "/output/contract.docx"
+```
+
+**Convert a directory of images to a single PDF (A4, landscape):**
+```bash
+./FPPDFConverter.out -a Images2PDF -i "/images/folder/" -s A4 -n landscape -o "/archives/combined.pdf"
+```
+
+**Convert plain text to a Word document with font and size settings:**
+```bash
+./FPPDFConverter.out -a Text2Word -i "/notes/readme.txt" -b SimSun -d 14 -o "/docs/readme.docx"
 ```
 
 ## Batch Conversion
@@ -115,12 +231,15 @@ Linux environments do not include Microsoft fonts by default. Ensure Arial, Cons
 Yes, this is a dedicated headless PDF converter designed specifically for Linux server environments and automated backend workflows.
 
 **4. What is the maximum number of threads I can use?**
-The `-t` flag supports values from 0 to 12. Setting it to 12 maximizes throughput on high-core-count servers, but ensure your system has sufficient RAM and CPU resources.
+The `-t` flag accepts values from 1 to 10 for the `PDF2Files` command (default: 1). Setting it to 10 maximizes throughput on high-core-count servers, but ensure your system has sufficient RAM and CPU resources.
 
-**5. Why is my conversion failing with path errors?**
+**5. How can I see all available options?**
+Run `./FPPDFConverter.out -h` for the list of commands, or `./FPPDFConverter.out -a <command> -h` (e.g. `./FPPDFConverter.out -a PDF2Files -h`) for command-specific options.
+
+**6. Why is my conversion failing with path errors?**
 Ensure you are using forward slashes (`/`) for all file paths and avoid Windows-specific illegal characters (like `\` or `:`) in your file and directory names.
 
-**6. Does the SDK preserve hyperlinks and tables?**
+**7. Does the SDK preserve hyperlinks and tables?**
 Yes, the PDF conversion library Linux engine is designed to retain original text, images, layouts, hyperlinks, tables, and Bezier graphics during the conversion process.
 
 ## Release Notes

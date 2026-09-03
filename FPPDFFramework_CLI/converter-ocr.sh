@@ -7,7 +7,7 @@ OUTPUT_DIR="converted"                         # Directory for converted files
 TOOL_PATH="./FPPDFConverter.out"
 NUM_THREADS="4"                           # Number of threads (1 - 12)
 OUTPUT_FORMAT="docx"                      # Output format (can be changed to pptx, xlsx, html, csv, txt, etc.)
-OCR_LANG="eng"                            # OCR language (can be changed to zh-Hans, zh-Hant, etc.)
+OCR_LANG="eng"                            # OCR language for Tesseract (e.g., eng, chi_sim, jpn).
 LOG_FILE="conversion-ocr.log"
 SUCCESS_MARKER="Successfully converted!"
 # ==============================================
